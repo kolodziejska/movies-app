@@ -59,7 +59,7 @@ class Artist(models.Model):
 
 class Movie(models.Model):
     """The movie object."""
-    title = models.CharField(max_length=45)
+    title = models.CharField(max_length=100)
     year = models.IntegerField()
     genre = models.ManyToManyField('Genre')
     director = models.ManyToManyField('Artist')
