@@ -16,5 +16,5 @@ app_name = 'movie'
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('artist/<int:pk>/', views.RetrieveArtistView.as_view(), name='artist')
+    path('artist/<str:slug>/', views.RetrieveArtistView.as_view(), name='artist')
 ]

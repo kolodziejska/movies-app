@@ -30,15 +30,15 @@ class BasicMovieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
         fields = ['id', 'title', 'year', 'average_rating']
-        read_only_fields = ['id', 'average_rating']
+        read_only_fields = ['id']
 
 
 class MovieSerializer(BasicMovieSerializer):
     """Serializer for movie object"""
 
-    genre = GenreSerializer(read_only=True, many=True)
-    director = ArtistSerializer(read_only=True, many=True)
-    actors = ArtistSerializer(read_only=True, many=True)
+    genre = GenreSerializer(many=True, read_only=True)
+    director = ArtistSerializer(many=True, read_only=True)
+    actors = ArtistSerializer(many=True, read_only=True)
 
     class Meta(BasicMovieSerializer.Meta):
         model = Movie
@@ -49,7 +49,8 @@ class MovieSerializer(BasicMovieSerializer):
                   'actors',
                   'overview',
                   'created',
-                  'updated']
+                  'updated',
+                  'slug']
         read_only_fields = BasicMovieSerializer.Meta.read_only_fields + \
                  ['created', 'updated']
 

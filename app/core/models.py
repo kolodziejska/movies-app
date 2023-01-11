@@ -51,6 +51,7 @@ class Artist(models.Model):
     """Artist object. (Artist can be either actor or director or both.)"""
     first_name = models.CharField(max_length=45)
     last_name = models.CharField(max_length=45)
+    slug = models.SlugField(null=True)
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
@@ -66,7 +67,8 @@ class Movie(models.Model):
     overview = models.TextField(blank=True, null=True)
     created = models.DateField(auto_now_add=True)
     updated = models.DateField(auto_now=True)
-    average_rating = models.DecimalField(max_digits=5, decimal_places=2) # ??
+    average_rating = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    slug = models.SlugField(null=True)
 
     def __str__(self):
         return self.title

@@ -8,6 +8,8 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 
+from django.utils.text import slugify
+
 from core.models import Movie, Genre, Artist, Rating
 from core.permissions import IsAdminOrReadOnly
 from movie import serializers
@@ -20,6 +22,7 @@ class MovieViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post']
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAdminOrReadOnly]
+    lookup_field = "slug"
 
     def get_queryset(self):
         """Retrieve movies with filtering and ordering."""
@@ -43,7 +46,7 @@ class MovieViewSet(viewsets.ModelViewSet):
             ordering_field = 'title'
         return queryset.order_by(ordering_field)
     
-    def retrieve(self, request, pk):
+    def retrieve(self, request, slug):
         """Override retrieve method to retrieve movie with ratings."""
 
         # retrieve movie
@@ -51,13 +54,25 @@ class MovieViewSet(viewsets.ModelViewSet):
         movie_serializer = self.get_serializer(instance)
 
         # retrieve ratings
-        ratings = Rating.objects.filter(movie_id=pk)
+        ratings = Rating.objects.filter(movie_id=instance.id)
         ratings_serializer = serializers.RatingSerializer(ratings, many=True)
 
         data = movie_serializer.data
         data['Ratings'] = ratings_serializer.data
 
         return Response(data)
+
+    def create(self, request):
+        """Override create method to autogenerate slug."""
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        if not instance.slug:
+            slug_title = f"{instance.title} {instance.id}"
+            instance.slug=slugify(slug_title)
+            instance.save()
+        return Response(serializer.data, status=200)
     
     @action(
         methods=['post'],
@@ -66,32 +81,31 @@ class MovieViewSet(viewsets.ModelViewSet):
         authentication_classes = [TokenAuthentication],
         permission_classes = [IsAuthenticated]
     )
-    def add_rating(self, request, pk=None):
+    def add_rating(self, request, slug=None):
         """Add rating to the movie."""
+
+        movie_id = slug.split("-")[-1]
         data = {
             'user': request.user.id,
-            'movie_id': pk,
+            'movie_id': movie_id,
             'rating': request.data['rating'],
             'comment': request.data['comment']
             }
         serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
-        if serializer.is_valid():
-            serializer.save()
+        try:
+            all_movie_ratings = Rating.objects.filter(movie_id=movie_id).values('rating')
+            ratings = [rating['rating'] for rating in all_movie_ratings]
+            average = round(sum(ratings) / len(ratings), 2)
+            movie = Movie.objects.get(id=movie_id)
+            movie.average_rating = average
+            movie.save()
+        except:
+            return Response('Rating was saved, but average did not change.', status=400)
 
-            try:
-                all_movie_ratings = Rating.objects.filter(movie_id=pk).values('rating')
-                ratings = [rating['rating'] for rating in all_movie_ratings]
-                average = round(sum(ratings) / len(ratings), 2)
-                movie = Movie.objects.get(id=pk)
-                movie.average_rating = average
-                movie.save()
-            except:
-                return Response('Rating was saved, but average did not change.', status=400)
-
-            return Response(serializer.data, status=200)
-        
-        return Response(serializer.errors, status=400)
+        return Response(serializer.data, status=200)
     
     def get_serializer_class(self):
         """Return the serializer class for request."""
@@ -105,8 +119,9 @@ class RetrieveArtistView(generics.RetrieveAPIView):
 
     serializer_class = serializers.ArtistSerializer
     queryset = Artist.objects.all()
+    lookup_field = "slug"
 
-    def retrieve(self, request, pk):
+    def retrieve(self, request, slug):
         """Override retrieve method to retrieve artist with movies."""
 
         # retrieve artist
@@ -114,11 +129,11 @@ class RetrieveArtistView(generics.RetrieveAPIView):
         artist_serializer = self.get_serializer(instance)
 
         # retrieve directed movies
-        directed = Movie.objects.filter(director=pk)
+        directed = Movie.objects.filter(director=instance.id)
         directed_serializer = serializers.BasicMovieSerializer(directed, many=True)
 
         # retrieve starred movies
-        starred = Movie.objects.filter(actors=pk)
+        starred = Movie.objects.filter(actors=instance.id)
         starred_serializer = serializers.BasicMovieSerializer(starred, many=True)
 
         data = artist_serializer.data
