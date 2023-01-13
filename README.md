@@ -7,11 +7,11 @@
 - listowanie filmów
 - filtrowanie filmów po tytule lub gatunku
 - sortowanie filmów po tytule lub średniej ocenie
-- dodawanie filmów i aktorów przez adminów strony
 - wyświetlanie filmu wraz z jego ocenami
 - dodawanie oceny przez zalogowanego użytkownika
 - edycja ocen przez panel użytkownika
 - wyświetlanie aktora i reżysera wraz z listą filmów
+*Uwaga*: dodawanie filmów i aktorów możliwe tylko przez adminów strony
 
 ### Użyte narzędzia i technologie
 - Docker
@@ -21,6 +21,8 @@
 - Postgres 13
 
 ### Diagram ERD
+
+![alt text](https://github.com/kolodziejska/movies-app/images/diagram_encji.png)
 
 ### API
 
@@ -38,7 +40,7 @@
 | api/movie/movies?genre={value}/ | GET | *filtrowanie filmów po gatunku* | - |
 | api/movie/movies/{slug}/ | GET | *wyświetlanie filmu* | - |
 | api/movie/movies/{slug}/add_rating/ | POST | *dodawanie oceny dla filmu o danym slug przez zalogowanego użytkownika* | `IS_AUTHORIZED` |
-| api/movie/artist/{slug}/ | GET | *wyświetlanie aktora lub reżysera" | - |
+| api/movie/artist/{slug}/ | GET | *wyświetlanie aktora lub reżysera* | - |
 
 ### Jak uruchomić
 
@@ -54,7 +56,7 @@ Aby zalogować się do panelu administracyjnego Django należy stworzyć superus
 docker-compose run --rm app sh -c "python manage.py createsuperuser"
 ```
 Aby załadować przykładowe dane należy:
-1. Pobrać plik csv z: https://www.kaggle.com/datasets/harshitshankhdhar/imdb-dataset-of-top-1000-movies-and-tv-shows
+1. Pobrać [plik csv](https://www.kaggle.com/datasets/harshitshankhdhar/imdb-dataset-of-top-1000-movies-and-tv-shows)
 2. Umieścić plik w folderze app/example_data
 3. Uruchomić komendę:
 ```
