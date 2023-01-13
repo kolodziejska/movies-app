@@ -11,6 +11,7 @@
 - dodawanie oceny przez zalogowanego użytkownika
 - edycja ocen przez panel użytkownika
 - wyświetlanie aktora i reżysera wraz z listą filmów
+
 *Uwaga*: dodawanie filmów i aktorów możliwe tylko przez adminów strony
 
 ### Użyte narzędzia i technologie
@@ -22,7 +23,7 @@
 
 ### Diagram ERD
 
-![alt text](https://github.com/kolodziejska/movies-app/images/diagram_encji.png)
+![alt text](https://raw.githubusercontent.com/kolodziejska/movies-app/master/images/diagram_encji.png)
 
 ### API
 
