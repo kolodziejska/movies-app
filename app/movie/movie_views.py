@@ -1,5 +1,5 @@
 """
-Views for movie API.
+Views for movie/movies API.
 """
 
 from rest_framework import viewsets, generics
@@ -63,15 +63,56 @@ class MovieViewSet(viewsets.ModelViewSet):
         return Response(data)
 
     def create(self, request):
-        """Override create method to autogenerate slug."""
+        """Override create method to add genres and artists and autogenerate slug."""
+        data = request.data.copy()
+        genres = data.pop('genre', None)
+        directors = data.pop('director', None)
+        actors = data.pop('actors', None)
 
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
+
+        # add genres
+        if genres:
+            for genre in genres:
+                genre_model, _ = Genre.objects.get_or_create(genre=genre['genre'])
+                instance.genre.add(genre_model)
+        
+        # add directors
+        if directors:
+            for director in directors:
+                first_name, last_name = director["first_name"], director["last_name"]
+                director_model, created = Artist.objects.get_or_create(
+                    first_name=first_name,
+                    last_name=last_name
+                )
+                if created:
+                    director_model.slug = slugify(
+                        f"{first_name} {last_name} {director_model.id}")
+                    director_model.save()
+                instance.director.add(director_model)
+
+        
+        # add actors
+        if actors:
+            for actor in actors:
+                first_name, last_name = actor["first_name"], actor["last_name"]
+                actor_model, created = Artist.objects.get_or_create(
+                    first_name=first_name,
+                    last_name=last_name
+                )
+                if created:
+                    actor_model.slug = slugify(
+                        f"{first_name} {last_name} {actor_model.id}")
+                    actor_model.save()
+                instance.actors.add(actor_model)
+
+        # generate slug
         if not instance.slug:
             slug_title = f"{instance.title} {instance.id}"
             instance.slug=slugify(slug_title)
-            instance.save()
+        instance.save()
         return Response(serializer.data, status=200)
     
     @action(
@@ -111,33 +152,7 @@ class MovieViewSet(viewsets.ModelViewSet):
         """Return the serializer class for request."""
         if self.action == 'add_rating':
             return serializers.ManageRatingSerializer
+        elif self.action == 'create':
+            return serializers.CreateMovieSerializer
 
         return self.serializer_class
-
-
-class RetrieveArtistView(generics.RetrieveAPIView):
-
-    serializer_class = serializers.ArtistSerializer
-    queryset = Artist.objects.all()
-    lookup_field = "slug"
-
-    def retrieve(self, request, slug):
-        """Override retrieve method to retrieve artist with movies."""
-
-        # retrieve artist
-        instance = self.get_object()
-        artist_serializer = self.get_serializer(instance)
-
-        # retrieve directed movies
-        directed = Movie.objects.filter(director=instance.id)
-        directed_serializer = serializers.BasicMovieSerializer(directed, many=True)
-
-        # retrieve starred movies
-        starred = Movie.objects.filter(actors=instance.id)
-        starred_serializer = serializers.BasicMovieSerializer(starred, many=True)
-
-        data = artist_serializer.data
-        data['Directed'] = directed_serializer.data
-        data['Starred'] = starred_serializer.data
-
-        return Response(data)

@@ -32,6 +32,13 @@ class BasicMovieSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'year', 'average_rating']
         read_only_fields = ['id']
 
+class CreateMovieSerializer(BasicMovieSerializer):
+    """Serializer for creating movie."""
+
+    class Meta(BasicMovieSerializer.Meta):
+        fields = BasicMovieSerializer.Meta.fields + ['overview']
+        read_only_fields = BasicMovieSerializer.Meta.read_only_fields + ['average_rating']
+
 
 class MovieSerializer(BasicMovieSerializer):
     """Serializer for movie object"""

@@ -7,12 +7,12 @@
 - listowanie filmów
 - filtrowanie filmów po tytule lub gatunku
 - sortowanie filmów po tytule lub średniej ocenie
+- dodawanie filmu przez admina strony
 - wyświetlanie filmu wraz z jego ocenami
 - dodawanie oceny przez zalogowanego użytkownika
 - edycja ocen przez panel użytkownika
 - wyświetlanie aktora i reżysera wraz z listą filmów
-
-*Uwaga*: dodawanie filmów i aktorów możliwe tylko przez adminów strony
+- dodawanie aktora i reżysera przez admina strony
 
 ### Użyte narzędzia i technologie
 - Docker
@@ -36,12 +36,14 @@
 | api/user/ratings/{id}/ | GET | *wyświetlanie oceny zalogowanego użytkownika* | `IS_AUTHORIZED` |
 | api/user/ratings/{id}/ | PATCH | *edycja oceny zalogowanego użytkownika* | `IS_AUTHORIZED` |
 | api/movie/movies/ | GET | *listowanie filmów* | - |
+| api/movie/movies/ | POST | *dodawanie filmu* | `IS_ADMIN` |
 | api/movie/movies?order_by={value}/ | GET | *sortowanie filmów; możliwe wartości to title lub rating* | - |
 | api/movie/movies?title={value}/ | GET | *filtrowanie filmów po tytule* | - |
 | api/movie/movies?genre={value}/ | GET | *filtrowanie filmów po gatunku* | - |
 | api/movie/movies/{slug}/ | GET | *wyświetlanie filmu* | - |
 | api/movie/movies/{slug}/add_rating/ | POST | *dodawanie oceny dla filmu o danym slug przez zalogowanego użytkownika* | `IS_AUTHORIZED` |
 | api/movie/artist/{slug}/ | GET | *wyświetlanie aktora lub reżysera* | - |
+| api/movie/create-artist/ | POST | *dodawanie aktora lub reżysera* | `IS_ADMIN` |
 
 ### Jak uruchomić
 

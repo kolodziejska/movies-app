@@ -31,10 +31,14 @@ def run():
             name = data[0]
             surname = data[-1]
 
-            director, _ = Artist.objects.get_or_create(
+            director, created = Artist.objects.get_or_create(
                 first_name=name, 
-                last_name=surname, 
-                slug=slugify(f'{name} {surname}'))
+                last_name=surname)
+            
+            if created:
+                director.slug = slugify(f"{name} {surname} {director.id}")
+                director.save()
+
             
             year = row['Released_Year'] if row['Released_Year'].isnumeric() else '0'
 
@@ -51,10 +55,12 @@ def run():
                 data = row[actor].split(maxsplit=1)
                 name = data[0]
                 surname = data[-1]
-                star, _ = Artist.objects.get_or_create(
+                star, created = Artist.objects.get_or_create(
                     first_name=name, 
-                    last_name=surname, 
-                    slug=slugify(f'{name} {surname}'))
+                    last_name=surname)
+                if created:
+                    star.slug = slugify(f"{name} {surname} {star.id}")
+                    star.save()
                 movie.actors.add(star)
 
             for genre in genre_models:
@@ -62,4 +68,3 @@ def run():
             
             movie.slug = f'{slugify(movie.title[:45])}-{movie.id}'
             movie.save()
-
